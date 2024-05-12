@@ -2,16 +2,18 @@ import json
 import os
 
 from App.Models.models import Transaction
-from App.Controllers.connection import Connection 
+from App.Config.connection import Connection 
 
 class Transactions_controller():
     def __init__(self) -> None:
         self.path_cache : str = "App/Cache/cache_transactions.json"
     
+
     def create_cache(self, transaction: [Transaction]):
         with open(self.path_cache, 'w') as f:
             json.dump(transaction, f, ensure_ascii=False)
     
+
     def get_history(self) -> [Transaction]:
         if os.path.isfile(self.path_cache): return json.load(open(self.path_cache))
         else:
@@ -19,8 +21,8 @@ class Transactions_controller():
                 connection = Connection(collection_name='transactions')
                 collection = connection.collection_store()
                 transactions = []
-                 
-                for doc in collection.find({ }):
+                all_transactions = collection.find({ })
+                for doc in all_transactions:
                     transactions.append({
                         '_id' : str(doc['_id']),
                         'client_id' : str(doc['client_id']),
@@ -32,7 +34,8 @@ class Transactions_controller():
                             'cvv' : str(doc['credit_card']['cvv']),
                             'card_holder_name' : str(doc['credit_card']['card_holder_name']),
                             'exp_date' : str(doc['credit_card']['exp_date']),
-                        }
+                        } 
+                     
                     })
                 self.create_cache(transaction=transactions)
                 return transactions
@@ -42,7 +45,8 @@ class Transactions_controller():
                 return {
                     "Error":"404"
                 }
-            
+
+
     def register_transaction(self, transaction:Transaction) -> Transaction:
         if os.path.isfile(self.path_cache):
             os.remove(self.path_cache)
@@ -67,14 +71,16 @@ class Transactions_controller():
             print(e)
             return False
 
+
     def get_transaction_by_client(self, client_name:str) -> [Transaction]:
         try:
             connection = Connection(collection_name='transactions')
             collection = connection.collection_store()
             transactions = []
-                
-            for doc in collection.find({'client_name':str(client_name) }):
+            all_transactions_by_client = collection.find({'client_name':str(client_name) })
+            for doc in all_transactions_by_client:
                 transactions.append({
+                    # Transaction(**all_transactions_by_client[doc])
                     '_id' : str(doc['_id']),
                     'client_id' : str(doc['client_id']),
                     'client_name' : str(doc['client_name']),

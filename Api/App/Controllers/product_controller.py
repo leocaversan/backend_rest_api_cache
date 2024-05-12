@@ -2,7 +2,7 @@ import json
 import os
 
 from App.Models.models import Product
-from App.Controllers.connection import Connection 
+from App.Config.connection import Connection 
 
 
 class Product_controller():
@@ -10,9 +10,11 @@ class Product_controller():
     def __init__(self) -> None:
         self.path_cache : str = "App/Cache/cache_product.json"
 
+
     def create_cache(self, products: [Product]):
         with open(self.path_cache, 'w') as f:
             json.dump(products, f, ensure_ascii=False)
+
 
     def get_all_products(self):
         
@@ -35,6 +37,7 @@ class Product_controller():
                 })
             self.create_cache(products=products)
             return products
+   
     
     def register_product(self, product: Product) -> bool:
     
@@ -56,5 +59,3 @@ class Product_controller():
         except Exception as e:
             print(e)
             return False
-
-# print(type(Product_controller.get_all_products()))

@@ -1,36 +1,45 @@
-import os
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 
+from App.Auth.security import Authentication
 from App.Controllers.transactions_controller import Transactions_controller
 from App.Models.models import Transaction, Name_client
-from App.Controllers.connection import Connection 
 
 transaction_controller = Transactions_controller()
 app_router = APIRouter()
     
 @app_router.get('/')
-def index():
+async def index():
     return {
             'On': 'Fire'
             }
 
-@app_router.get('/starstore/history')
-def get_all_transactions():
 
+@app_router.get('/starstore/history')
+async def get_all_transactions(
+    user: dict =  Depends(Authentication.get_authenticated_user_from_session)
+):
     transactions = transaction_controller.get_history()
     return transactions
 
+
 @app_router.post('/starstore/history')
-def get_transaction_client(data: Name_client):
+async def get_transaction_client(
+    data: Name_client,
+    user: dict =  Depends(Authentication.get_authenticated_user_from_session)
+    ):
 
     transactions_by_client = transaction_controller.get_transaction_by_client(data.name)
     return transactions_by_client
    
 
 @app_router.post('/starstore/buy')
-def buy_product(transaction:Transaction) -> Transaction:
+async def buy_product(
+    transaction:Transaction,
+    user: dict =  Depends(Authentication.get_authenticated_user_from_session)
+    ) -> Transaction:
 
     if transaction_controller.register_transaction(transaction):
+        
         return {
                 'client_id' : transaction.client_id,
                 'client_name' : transaction.client_name,
@@ -43,6 +52,7 @@ def buy_product(transaction:Transaction) -> Transaction:
                     'exp_date' : transaction.credit_card.exp_date,
                     }
                 }
-    return {
-        "Error":"404"
-    }
+    raise HTTPException(
+                status_code=404,
+                detail="Error to complete transaction"
+            )
